@@ -1,0 +1,47 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2761
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 import json\
+import boto3\
+\
+# 1. Import boto3 and create client connection with bedrock\
+client_bedrock = boto3.client('bedrock-runtime')\
+\
+def lambda_handler(event, context):\
+    # 2a. Store the input in a variable\
+    input_prompt = event['prompt']\
+    \
+    # 2b. Print the event (added print statement for event)\
+    print("Event: ", event)\
+    \
+    # 3. Create Request Syntax - Get details from console & body should be json object - use json.dumps for body\
+    client_bedrockreq = client_bedrock.invoke_model(\
+        contentType='application/json',\
+        accept='application/json',\
+        modelId='cohere.command-light-text-v14',\
+        body=json.dumps(\{"prompt": input_prompt, "max_tokens": 100\})\
+    )\
+    \
+    # 4. Convert Streaming Body to Byte.read method and then Byte to String using json.loads\
+    client_bedrock_byte = client_bedrockreq['body'].read()\
+    client_bedrock_str = json.loads(client_bedrock_byte)\
+    \
+    # 5a. Print the event and type (added print statement for response and type)\
+    print("Response Type: ", type(client_bedrock_str))\
+    print("Response: ", client_bedrock_str)\
+    \
+    # 5b. Store the input in a variable (This step seems redundant as we already have the input_prompt)\
+    \
+    # 6. Update the 'return' by changing the 'body'\
+    client_bedrock_finalresponse = client_bedrock_str['generations'][0]['text']\
+    print(client_bedrock_finalresponse)\
+    \
+    return \{\
+        'statusCode': 200,\
+        'body': json.dumps(client_bedrock_finalresponse)\
+    \}\
+}
